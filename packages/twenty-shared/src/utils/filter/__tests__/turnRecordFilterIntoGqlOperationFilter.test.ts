@@ -256,7 +256,7 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
         fieldMetadataItemById,
       });
 
-      expect(result).toEqual({ not: { amount: { eq: 42 } } });
+      expect(result).toEqual({ amount: { neq: 42 } });
     });
 
     it('should handle GREATER_THAN_OR_EQUAL operand', () => {
@@ -782,6 +782,28 @@ describe('turnRecordFilterIntoRecordGqlOperationFilter', () => {
       });
 
       expect(result).toHaveProperty('revenue');
+    });
+
+    it('should handle IS_NOT on amountMicros with neq', () => {
+      const result = turnRecordFilterIntoRecordGqlOperationFilter({
+        filterValueDependencies,
+        recordFilter: makeFilter(
+          'f-currency',
+          RecordFilterOperand.IS_NOT,
+          '50',
+          'CURRENCY',
+          'amountMicros',
+        ),
+        fieldMetadataItemById,
+      });
+
+      expect(result).toEqual({
+        revenue: {
+          amountMicros: {
+            neq: 50000000,
+          },
+        },
+      });
     });
   });
 
