@@ -1,5 +1,7 @@
 /* @license Enterprise */
 
+import { buildSafeTableAlias } from 'src/engine/core-modules/record-share/utils/build-safe-table-alias.util';
+
 import { resolveRecordShareGateKind } from 'src/engine/core-modules/record-share/utils/resolve-record-share-gate-kind.util';
 import { type RecordShareAccessLevel } from 'twenty-shared/types';
 import { assertUnreachable, isDefined } from 'twenty-shared/utils';
@@ -216,7 +218,9 @@ const buildInheritedReadabilityParentExpression = ({
   parent: InheritedReadabilityParent;
 }): InheritedReadabilityParentExpression => {
   if (parent.kind === 'column') {
-    const parentTableAlias = `${tableAlias}_${parent.joinColumnName}`;
+    const parentTableAlias = buildSafeTableAlias(
+      `${tableAlias}_${parent.joinColumnName}`,
+    );
 
     return {
       kind: 'column',
@@ -232,7 +236,9 @@ const buildInheritedReadabilityParentExpression = ({
     };
   }
 
-  const childTableAlias = `${tableAlias}_${parent.childFlatObjectMetadata.nameSingular}`;
+  const childTableAlias = buildSafeTableAlias(
+    `${tableAlias}_${parent.childFlatObjectMetadata.nameSingular}`,
+  );
 
   return {
     kind: 'children',

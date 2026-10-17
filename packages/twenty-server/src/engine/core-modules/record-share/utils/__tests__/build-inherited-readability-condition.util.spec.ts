@@ -177,4 +177,35 @@ describe('buildInheritedReadabilityCondition', () => {
       ' OR ("attachment"."targetPersonId" IS NULL AND NOT EXISTS (SELECT 1 FROM "workspace_abc"."noteTarget" AS "attachment_noteTarget" WHERE "attachment_noteTarget"."noteId" = "attachment"."id" AND ("attachment_noteTarget"."deletedAt" IS NULL OR ("attachment"."deletedAt" IS NOT NULL AND "attachment_noteTarget"."deletedAt" >= "attachment"."deletedAt")))))',
     );
   });
+  it('should prevent alias collision when nested aliases exceed PostgreSQL 63-byte identifier limit', () => {
+    const longOuterAlias =
+      'customLeafRecord_parentCollectionId_containerId_securityGroupId';
+    const longChildAlias = `${longOuterAlias}_groupMembership`;
+
+    const { sql } = buildInheritedReadabilityCondition({
+      tableAlias: longOuterAlias,
+      objectMetadataId: ATTACHMENT_OBJECT_METADATA_ID,
+      parents: [
+        {
+          kind: 'children',
+          childTableAlias: longChildAlias,
+          childJoinColumnName: 'groupId',
+          childTableExpression: '"workspace_abc"."membership"',
+          policy: { kind: 'open' },
+        },
+      ],
+      recordShareTableExpression: RECORD_SHARE_TABLE_EXPRESSION,
+      principalIds: PRINCIPAL_IDS,
+      accessLevels: ACCESS_LEVELS,
+      isOpenWhenDetached: false,
+    });
+
+    expect(longOuterAlias.length).toBe(63);
+    expect(sql).toContain(
+      'EXISTS (SELECT 1 FROM "workspace_abc"."membership" AS "customLeafRecord_parentCollectionId_containerId_securi_',
+    );
+    expect(sql).not.toContain(
+      `"workspace_abc"."membership" AS "${longOuterAlias}"`,
+    );
+  });
 });

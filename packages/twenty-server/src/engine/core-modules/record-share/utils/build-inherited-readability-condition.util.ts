@@ -1,5 +1,7 @@
 /* @license Enterprise */
 
+import { buildSafeTableAlias } from 'src/engine/core-modules/record-share/utils/build-safe-table-alias.util';
+
 import { type RecordShareAccessLevel } from 'twenty-shared/types';
 import { type ObjectLiteral } from 'typeorm';
 
@@ -72,7 +74,7 @@ export const buildInheritedReadabilityCondition = ({
   isOpenWhenDetached: boolean;
 }): SqlCondition => {
   const parameters: ObjectLiteral = {};
-  const quotedTableAlias = escapeIdentifier(tableAlias);
+  const quotedTableAlias = escapeIdentifier(buildSafeTableAlias(tableAlias));
 
   // The record's own share rows, its creator's included, grant access on their own, as on a PRIVATE record.
   const ownRecordShareCondition = buildRecordShareCondition({
@@ -91,7 +93,9 @@ export const buildInheritedReadabilityCondition = ({
     }
 
     if (parent.kind === 'children') {
-      const quotedChildTableAlias = escapeIdentifier(parent.childTableAlias);
+      const quotedChildTableAlias = escapeIdentifier(
+        buildSafeTableAlias(parent.childTableAlias),
+      );
       const childRowConditions = [
         `${quotedChildTableAlias}.${escapeIdentifier(parent.childJoinColumnName)} = ${quotedTableAlias}."id"`,
         buildChildLinkBoundCondition({
@@ -117,7 +121,9 @@ export const buildInheritedReadabilityCondition = ({
       return [notNullCondition];
     }
 
-    const quotedParentTableAlias = escapeIdentifier(parent.parentTableAlias);
+    const quotedParentTableAlias = escapeIdentifier(
+      buildSafeTableAlias(parent.parentTableAlias),
+    );
 
     Object.assign(parameters, parent.policy.condition.parameters);
 

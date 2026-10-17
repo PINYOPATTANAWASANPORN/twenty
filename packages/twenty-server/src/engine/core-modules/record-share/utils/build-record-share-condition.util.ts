@@ -1,5 +1,7 @@
 /* @license Enterprise */
 
+import { buildSafeTableAlias } from 'src/engine/core-modules/record-share/utils/build-safe-table-alias.util';
+
 import { randomBytes } from 'node:crypto';
 
 import { type RecordShareAccessLevel } from 'twenty-shared/types';
@@ -27,7 +29,9 @@ export const buildRecordShareCondition = ({
   const principalIdsParameterName = `recordSharePrincipalIds_${parameterSuffix}`;
   const accessLevelsParameterName = `recordShareAccessLevels_${parameterSuffix}`;
 
-  const recordShareAlias = escapeIdentifier(`${tableAlias}_recordShare`);
+  const recordShareAlias = escapeIdentifier(
+    buildSafeTableAlias(`${tableAlias}_recordShare`),
+  );
 
   const recordId = `${escapeIdentifier(tableAlias)}."id"`;
   const grantConditions = [
